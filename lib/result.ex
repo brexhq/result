@@ -8,12 +8,16 @@ defmodule Result do
 
   require Logger
 
-  @type a :: any()
-  @type b :: any()
-  @type c :: any()
+  @typep a :: any()
+  @typep b :: any()
+  @typep c :: any()
+
   @type s(x) :: {:ok, x} | {:error, any}
   @type t(x) :: :ok | s(x)
+
   @type p() :: :ok | {:error, any}
+  @type s() :: s(any)
+  @type t() :: t(any)
 
   @doc """
   Returns :ok
@@ -97,12 +101,18 @@ defmodule Result do
       ~>> two_args(2)
       = {:ok, 1}
   """
-  # TODO: add support for
-  # {:ok, 4} ~>> (fn x -> {:ok, x + 3} end).()
-  # {:ok, 4} ~>> (&({:ok, &1 + 3})).()
-  # both of these work with pipe
+  # Hack: kind of a hack, i worry about throwing out the meta data - mostly line numbers.
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :base
+  @spec t(a) ~>> (a -> t(b)) :: t(b)
+  defmacro arg ~>> {{:., _fmeta, [fname]}, _meta, []} do
+    quote do
+      unquote(arg)
+      |> unquote(__MODULE__).bind(unquote(fname))
+    end
+  end
+
   defmacro arg ~>> {fname, meta, params} when is_list(params) do
     quote do
       # reworks function calls with other arguments eg. fname(arg2) -> &(fname(&1, arg2))
@@ -121,6 +131,7 @@ defmodule Result do
 
   @doc """
   If the first argument is success then it returns the second, else it propogates the first error.
+  Lazy. Only evaluates the second argument if necessary.
   ## Examples:
       iex> sequencing({:ok, 1}, {:ok, 2})
       {:ok, 2}
@@ -131,23 +142,34 @@ defmodule Result do
       iex> sequencing(:ok, {:ok, 1})
       {:ok, 1}
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :base
   @spec sequencing(t(a), t(b)) :: t(b)
-  def sequencing({:error, _r} = ma, {:error, _r2}), do: ma
-  def sequencing({:error, _r} = ma, {:ok, _v}), do: ma
-  def sequencing({:error, _r} = ma, :ok), do: ma
+  defmacro sequencing(ma, mb) do
+    on_success_quoted =
+      quote do
+        case unquote(mb) do
+          {:error, r} -> {:error, r}
+          {:ok, val} -> {:ok, val}
+          :ok -> :ok
+        end
+      end
 
-  def sequencing({:ok, _val}, {:error, _r} = mb), do: mb
-  def sequencing({:ok, _val}, {:ok, _v} = mb), do: mb
-  def sequencing({:ok, _val}, :ok), do: :ok
+    quote do
+      ma = unquote(ma)
 
-  def sequencing(:ok, {:error, _r} = mb), do: mb
-  def sequencing(:ok, {:ok, _v} = mb), do: mb
-  def sequencing(:ok, :ok), do: :ok
+      case ma do
+        {:error, _r} -> ma
+        {:ok, _val} -> unquote(on_success_quoted)
+        :ok -> unquote(on_success_quoted)
+      end
+    end
+  end
 
   @doc """
   Infix sequencing.
+  Lazy. Only evaluates the second argument if necessary.
   ## Examples:
       iex> {:ok, 1}
       ...> ~> {:ok, 2}
@@ -164,7 +186,12 @@ defmodule Result do
   """
   @doc since: "0.1.0"
   @doc result: :base
-  def ma ~> mb, do: sequencing(ma, mb)
+  @spec t(a) ~> t(b) :: t(b)
+  defmacro ma ~> mb do
+    quote do
+      unquote(__MODULE__).sequencing(unquote(ma), unquote(mb))
+    end
+  end
 
   @doc """
   Applies the function to the value within the ok tuple or propogates error.
@@ -180,6 +207,25 @@ defmodule Result do
   @doc result: :base
   @spec fmap(s(a), (a -> b)) :: s(b)
   def fmap(m, f), do: bind(m, &{:ok, f.(&1)})
+
+  @doc """
+  Ignores the value in an ok tuple and just returns :ok.
+  Still shortcircuits on error.
+  ## Examples:
+      iex> {:ok, 2}
+      ...> |> ignore
+      :ok
+      iex> :ok
+      ...> |> ignore
+      :ok
+      iex> {:error, :not_found}
+      ...> |> ignore
+      {:error, :not_found}
+  """
+  @doc since: "0.1.1"
+  @doc result: :base
+  @spec ignore(t(a)) :: p()
+  def ignore(ma), do: sequencing(ma, :ok)
 
   @doc "Extracts the value or reason from the tuple."
   @doc since: "0.1.0"
@@ -219,6 +265,9 @@ defmodule Result do
   In those cases an error tuple is returned with either
   1) the third argument as the reason
   2) the third argument function applied to the value, as the reason
+
+  lift is lazy, this means third argument will only be evaluated when necessary.
+
   ## Examples:
       iex> nil
       ...> |> lift(nil, :not_found)
@@ -230,23 +279,27 @@ defmodule Result do
       ...> |> lift(&(&1 == "test"), fn x -> {:oops, x <> "ed"} end)
       {:error, {:oops, "tested"}}
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :helper
   @spec lift(a | b, b | (a | b -> boolean), c | (a | b -> c)) :: s(a)
-  def lift(val, p, f) when is_function(p) and is_function(f) do
-    if p.(val), do: error(f.(val)), else: ok(val)
-  end
+  defmacro lift(val, p, f) do
+    quote do
+      p = unquote(p)
+      val = unquote(val)
+      # check if the value passes satisfies the predicate or matches the second argument.
+      match = if is_function(p), do: p.(val), else: val == p
 
-  def lift(val, p, reason) when is_function(p) do
-    if p.(val), do: error(reason), else: ok(val)
-  end
-
-  def lift(val, match, f) when is_function(f) do
-    if val == match, do: error(f.(val)), else: ok(val)
-  end
-
-  def lift(val, match, reason) do
-    if val == match, do: error(reason), else: ok(val)
+      if match do
+        f = unquote(f)
+        # lift to error tuple on match
+        if(is_function(f), do: f.(val), else: f)
+        |> unquote(__MODULE__).error
+      else
+        # ok tuple otherwise
+        unquote(__MODULE__).ok(val)
+      end
+    end
   end
 
   @doc """
@@ -268,56 +321,62 @@ defmodule Result do
   @doc """
   Replaces the reason in an error tuple.
   Leaves success unchanged.
+  Lazy. Only evaluates the second argument if necessary.
   ## Example:
       iex> account_name = "test"
       ...> {:error, :not_found}
       ...> |> mask_error({:nonexistent_account, account_name})
       {:error, {:nonexistent_account, "test"}}
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :helper
   @spec mask_error(t(a), any) :: t(a)
-  def mask_error({:error, _}, term), do: error(term)
-  def mask_error({:ok, _val} = ma, _), do: ma
-  def mask_error(:ok, _), do: :ok
+  defmacro mask_error(ma, term) do
+    quote do
+      ma = unquote(ma)
+
+      if unquote(__MODULE__).is_error(ma) do
+        {:error, unquote(term)}
+      else
+        ma
+      end
+    end
+  end
 
   @doc """
   Logs on error, does nothing on success.
+
+  ## Example:
+      {:error, :not_found}
+      |> log_error("There was an error", level: :info, metadata: "some meta")
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :helper
-  @spec log_error(t(a), Keyword.t()) :: t(a)
-  def log_error(ma, opts \\ [])
+  # TODO: refine the type of second argument
+  @spec log_error(t(a), String.t() | (any -> any), Keyword.t()) :: t(a)
+  def log_error(ma, chardata_or_fun, opts \\ [])
 
-  def log_error({:error, e} = ma, opts) do
-    {message, metadata} = Keyword.pop(opts, :message, "Error encountered")
+  def log_error({:error, r} = ma, chardata_or_fun, opts) when is_binary(chardata_or_fun) do
+    # default to :error level
+    {level, metadata} = Keyword.pop(opts, :level, :error)
 
-    Logger.error(message,
-      metadata: metadata,
-      reason: "#{e}"
-    )
+    log_fn =
+      case level do
+        :debug -> &Logger.debug/2
+        :info -> &Logger.info/2
+        :warn -> &Logger.warn/2
+        :error -> &Logger.error/2
+      end
+
+    log_fn.(chardata_or_fun, [reason: "#{r}"] ++ metadata)
 
     ma
   end
 
-  def log_error({:ok, _val} = ma, _), do: ma
-  def log_error(:ok, _), do: :ok
-
-  @doc """
-  Partitions the success values from the error reasons.
-  Returns a map where the keys are :ok and :error and the values are enums.
-  No guarantee on the order of the returned lists. (In fact they are generally backwards.)
-  ## Example:
-      iex> [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
-      ...> |> partition
-      %{ok: [4, 1], error: [3, 2]}
-  """
-  @doc since: "0.1.0"
-  @doc result: :mapper
-  @spec partition(Enum.t(s(a))) :: %{ok: Enum.t(a), error: Enum.t(b)}
-  def partition(l) do
-    Enum.reduce(l, %{}, fn {atom, val}, acc -> Map.update(acc, atom, [val], &[val | &1]) end)
-  end
+  def log_error({:ok, _val} = ma, _, _), do: ma
+  def log_error(:ok, _, _), do: :ok
 
   @doc """
   Binds the function to each tuple in the enum.
@@ -343,14 +402,16 @@ defmodule Result do
       ...> |> convert_error(fn r -> r == :already_completed end)
       :ok
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :helper
-  @spec convert_error(t(a), (any -> boolean) | atom) :: t(a)
+  # Note: convert_error/2 is eager and that's fine.
+  @spec convert_error(t(a), (any -> boolean) | any) :: t(a)
   def convert_error({:error, r} = ma, p) when is_function(p) do
     if p.(r), do: :ok, else: ma
   end
 
-  def convert_error({:error, r} = ma, term) when is_atom(term) do
+  def convert_error({:error, r} = ma, term) do
     if r == term, do: :ok, else: ma
   end
 
@@ -361,6 +422,7 @@ defmodule Result do
   Converts a matching error to a success with the given value or function.
   An error matches if the reason is equal to the supplied atom or the reason passes the predicate.
   Leaves success and other errors unchanged.
+  Lazy. Only evaluates the second argument if necessary.
   ## Example:
       iex> {:error, :already_completed}
       ...> |> convert_error(:already_completed, "submitted")
@@ -369,21 +431,35 @@ defmodule Result do
       ...> |> convert_error(&(&1 == "test"), fn r -> {:ok, r <> "ed"} end)
       {:ok, "tested"}
   """
+  @doc updated: "0.1.1"
   @doc since: "0.1.0"
   @doc result: :helper
-  @spec convert_error(t(a), (any -> boolean) | atom, b | (any -> t(b))) :: t(b)
-  def convert_error({:error, r} = err, p, f) when is_function(f) do
-    convert_error(err, p)
-    ~> f.(r)
-  end
+  @spec convert_error(t(a), (any -> boolean) | any, b | (any -> t(b))) :: t(b)
+  defmacro convert_error(ma, p, f) do
+    quote do
+      ma = unquote(ma)
+      p = unquote(p)
 
-  def convert_error({:error, _r} = err, p, new_val) do
-    convert_error(err, p)
-    ~> ok(new_val)
-  end
+      case ma do
+        {:error, r} ->
+          match = if is_function(p), do: p.(r), else: r == p
 
-  def convert_error({:ok, _val} = ma, _p, _new_val), do: ma
-  def convert_error(:ok, _p, _new_val), do: :ok
+          if match do
+            f = unquote(f)
+            # convert to ok tuple with new value.
+            if is_function(f), do: f.(r), else: {:ok, f}
+          else
+            ma
+          end
+
+        {:ok, _v} ->
+          ma
+
+        :ok ->
+          ma
+      end
+    end
+  end
 
   @doc """
   Given an enumerable of plain values,
@@ -489,10 +565,34 @@ defmodule Result do
   @doc result: :mapper
   @spec stop_at_first_error(Enum.t(t(a))) :: t(a)
   def stop_at_first_error(ms) do
-    Enum.reduce_while(ms, :ok, fn x, _acc ->
-      case x do
+    Enum.reduce_while(ms, :ok, fn ma, _acc ->
+      case ma do
         :ok -> {:cont, :ok}
-        {:ok, val} -> {:cont, {:ok, val}}
+        {:ok, _v} -> {:cont, ma}
+        {:error, _r} -> {:halt, ma}
+      end
+    end)
+  end
+
+  @doc """
+  Applies the function to each element of the enumerable until an error occurs.
+  No guarentee on the order of evaluation. (But usually backwards for lists.)
+  Only takes a function that returns :ok | {:error, value}.
+  ## Examples:
+      iex> [1, 2, 3, 4]
+      ...> |> each_while_success(fn x -> if x < 3, do: :ok, else: {:error, :too_big} end)
+      {:error, :too_big}
+      iex> [1, 2, 3, 4]
+      ...> |> each_while_success(fn x -> if x < 5, do: :ok, else: {:error, :too_big} end)
+      :ok
+  """
+  @doc since: "0.1.1"
+  @doc result: :mapper
+  @spec each_while_success(Enum.t(a), (a -> p())) :: p()
+  def each_while_success(ms, f) do
+    Enum.reduce_while(ms, :ok, fn x, _acc ->
+      case f.(x) do
+        :ok -> {:cont, :ok}
         {:error, r} -> {:halt, {:error, r}}
       end
     end)
@@ -511,8 +611,8 @@ defmodule Result do
   @doc since: "0.1.0"
   @doc result: :mapper
   @spec filter(Enum.t(s(a)), (a -> boolean)) :: t(Enum.s(a))
-  def filter(l, p) do
-    l
+  def filter(ms, p) do
+    ms
     |> Enum.reduce({:ok, []}, fn x, acc ->
       case fmap(x, p) do
         {:ok, true} -> bind(x, acc, &{:ok, [&1 | &2]})
