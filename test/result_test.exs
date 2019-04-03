@@ -1,4 +1,5 @@
 defmodule ResultTest do
+  @moduledoc false
   use ExUnit.Case
   import Result
 
@@ -13,6 +14,8 @@ defmodule ResultTest do
   end
 
   def two_args(x, y), do: {:ok, x - y}
+
+  def inside_bind(x, f), do: x ~>> f.()
 
   test "bind" do
     assert_raise FunctionClauseError, fn ->
@@ -42,6 +45,23 @@ defmodule ResultTest do
     assert {:error, 2} = {:error, 2} ~>> sgn
 
     assert {:ok, 1} = {:ok, 3} ~>> two_args(2)
+
+    assert {:ok, 1} = {:ok, 3} ~>> two_args(2)
+
+    assert {:ok, 1} = {:ok, 3} ~>> two_args(2)
+
+    assert {:error, 1} = {:ok, 1} |> inside_bind(fn x -> {:error, x} end)
+
+    assert {:ok, 2} = {:ok, 1} |> inside_bind(fn x -> {:ok, x + 1} end)
+
+    assert {:error, 1} = {:error, 1} |> inside_bind(&{:ok, &1})
+
+    assert_raise ArgumentError, fn ->
+      {:ok, 1} ~>> (fn _x -> raise(ArgumentError) end).()
+    end
+
+    assert {:ok, 2} =
+             {:ok, 1} ~>> (fn x -> if x > 1, do: raise(ArgumentError), else: {:ok, 2} end).()
   end
 
   test "sequencing" do
@@ -52,6 +72,10 @@ defmodule ResultTest do
     assert :ok = sequencing({:ok, 1}, :ok)
 
     assert {:ok, 1} = sequencing(:ok, {:ok, 1})
+
+    assert {:ok, 7} = {:ok, 4} ~>> (fn x -> {:ok, x + 3} end).()
+
+    assert {:ok, 7} = {:ok, 4} ~>> (&{:ok, &1 + 3}).()
   end
 
   test "~>" do
@@ -86,6 +110,32 @@ defmodule ResultTest do
     assert :ok =
              {:ok, 1}
              ~> :ok
+
+    # TODO: add tests that side effect a certain number of times.
+
+    assert {:error, 1} =
+             {:error, 1}
+             ~> {:ok, raise("don't evaluate me!")}
+
+    assert_raise RuntimeError, fn ->
+      {:ok, 1}
+      ~> {:ok, raise("do evaluate me!")}
+    end
+
+    assert_raise RuntimeError, fn ->
+      {:error, raise("always")}
+      ~> {:ok, 1}
+    end
+
+    assert {:error, 1} =
+             {:error, 1}
+             ~> {:error, raise("always")}
+             ~> {:ok, 1}
+
+    assert {:error, 3} =
+             (fn x -> if x, do: {:error, 3}, else: {:ok, 3} end).(sgn({:ok, 4}))
+             ~> {:error, raise("always")}
+             ~> {:ok, 1}
   end
 
   test "fmap" do
@@ -101,6 +151,14 @@ defmodule ResultTest do
     assert {:error, 6} =
              {:error, 6}
              |> fmap(fn x -> x + 2 end)
+  end
+
+  test "ignore" do
+    assert :ok = ignore({:ok, 2})
+
+    assert :ok = ignore(:ok)
+
+    assert {:error, :not_found} = ignore({:error, :not_found})
   end
 
   test "extract" do
@@ -161,6 +219,10 @@ defmodule ResultTest do
              |> lift("test", &(&1 <> "ed"))
   end
 
+  test "lift with side effects" do
+    # TODO: write side effect testing tests. Make sure it's lazy.
+  end
+
   test "map_error" do
     assert {:error, 3} = map_error({:error, 1}, fn x -> x + 2 end)
 
@@ -179,37 +241,36 @@ defmodule ResultTest do
     assert {:error, {:new_reason, "test"}} = mask_error({:error, 1}, {:new_reason, "test"})
   end
 
+  test "mask_error with side effects" do
+    # TODO: write side effect testing tests. Make sure it's lazy.
+  end
+
+  # TODO: add log level testing + function as second arg tests
   test "log_error error case" do
     # logs generic error
     assert {:error, 1} ==
-             log_error({:error, 1})
+             log_error({:error, 1}, "")
 
     # logs error with specific message and metadata
     assert {:error, 1} ==
-             log_error({:error, 1}, message: "test", meta: "test meta")
+             log_error({:error, 1}, "test", meta: "test meta")
 
     # logs error with metadata and generic message
     assert {:error, 1} ==
-             log_error({:error, 1}, meta: "test meta")
+             log_error({:error, 1}, "", meta: "test meta")
 
     # logs error with specific message
     assert {:error, 1} ==
-             log_error({:error, 1}, message: "test")
+             log_error({:error, 1}, "test")
   end
 
   test "log_error success cases" do
     # should not log.
     assert {:ok, 1} ==
-             log_error({:ok, 1}, message: "test", meta: "test meta")
+             log_error({:ok, 1}, "test", meta: "test meta")
 
     assert :ok ==
-             log_error(:ok)
-  end
-
-  test "partition" do
-    assert %{ok: [4, 1], error: [3, 2]} ==
-             [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
-             |> partition
+             log_error(:ok, "")
   end
 
   test "convert_error" do
@@ -292,6 +353,10 @@ defmodule ResultTest do
     assert {:ok, 3} =
              {:error, 1}
              |> convert_error(&(1 == &1), &{:ok, 2 + &1})
+  end
+
+  test "convert_error with side effect" do
+    # TODO: write side effect tests
   end
 
   test "sequence" do
@@ -403,5 +468,15 @@ defmodule ResultTest do
     assert {:ok, [1, 4]} =
              [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
              |> filter(fn _ -> true end)
+  end
+
+  test "each_while_success" do
+    assert {:error, :too_big} =
+             [1, 2, 3, 4]
+             |> each_while_success(fn x -> if x < 3, do: :ok, else: {:error, :too_big} end)
+
+    assert :ok =
+             [1, 2, 3, 4]
+             |> each_while_success(fn x -> if x < 5, do: :ok, else: {:error, :too_big} end)
   end
 end
