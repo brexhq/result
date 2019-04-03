@@ -5,6 +5,7 @@ defmodule ResultTest do
 
   doctest Result
 
+  # TODO: test side effects
   def sgn(x) do
     if x > 0 do
       {:ok, "pos"}
@@ -31,6 +32,14 @@ defmodule ResultTest do
     assert {:ok, :bar} = bind({:ok, :foo}, fn _ -> {:ok, :bar} end)
 
     assert {:error, :foo} = bind({:error, :foo}, fn _ -> {:ok, :bar} end)
+
+    assert_raise ArgumentError, fn ->
+      bind({:ok, 2}, fn _ -> :ok end)
+    end
+
+    assert_raise ArgumentError, fn ->
+      bind({:ok, 2}, & &1)
+    end
   end
 
   test "~>>" do
@@ -64,80 +73,6 @@ defmodule ResultTest do
              {:ok, 1} ~>> (fn x -> if x > 1, do: raise(ArgumentError), else: {:ok, 2} end).()
   end
 
-  test "sequencing" do
-    assert {:ok, 2} = sequencing({:ok, 1}, {:ok, 2})
-
-    assert {:error, 3} = sequencing({:error, 3}, {:error, 4})
-
-    assert :ok = sequencing({:ok, 1}, :ok)
-
-    assert {:ok, 1} = sequencing(:ok, {:ok, 1})
-
-    assert {:ok, 7} = {:ok, 4} ~>> (fn x -> {:ok, x + 3} end).()
-
-    assert {:ok, 7} = {:ok, 4} ~>> (&{:ok, &1 + 3}).()
-  end
-
-  test "~>" do
-    assert {:error, 3} =
-             {:ok, 1}
-             ~> {:ok, 2}
-             ~> {:error, 3}
-             ~> {:error, 4}
-
-    assert {:error, 2} =
-             {:ok, 1}
-             ~> {:error, 2}
-             ~> {:ok, 3}
-             ~> {:error, 4}
-
-    assert {:error, 3} =
-             :ok
-             ~> {:error, 3}
-
-    assert {:error, 3} =
-             {:error, 3}
-             ~> :ok
-
-    assert {:ok, 2} =
-             {:ok, 1}
-             ~> {:ok, 2}
-
-    assert {:ok, 2} =
-             :ok
-             ~> {:ok, 2}
-
-    assert :ok =
-             {:ok, 1}
-             ~> :ok
-
-    # TODO: add tests that side effect a certain number of times.
-
-    assert {:error, 1} =
-             {:error, 1}
-             ~> {:ok, raise("don't evaluate me!")}
-
-    assert_raise RuntimeError, fn ->
-      {:ok, 1}
-      ~> {:ok, raise("do evaluate me!")}
-    end
-
-    assert_raise RuntimeError, fn ->
-      {:error, raise("always")}
-      ~> {:ok, 1}
-    end
-
-    assert {:error, 1} =
-             {:error, 1}
-             ~> {:error, raise("always")}
-             ~> {:ok, 1}
-
-    assert {:error, 3} =
-             (fn x -> if x, do: {:error, 3}, else: {:ok, 3} end).(sgn({:ok, 4}))
-             ~> {:error, raise("always")}
-             ~> {:ok, 1}
-  end
-
   test "fmap" do
     assert_raise FunctionClauseError, fn ->
       :ok
@@ -161,36 +96,24 @@ defmodule ResultTest do
     assert {:error, :not_found} = ignore({:error, :not_found})
   end
 
-  test "extract" do
-    assert 1 = extract({:ok, 1})
+  test "normalize_error" do
+    assert {:error, :test} = normalize_error(:error, :test)
 
-    assert_raise ArgumentError, fn -> extract({:error, 1}) end
+    assert {:error, :normalized} = normalize_error(:error)
 
-    assert_raise FunctionClauseError, fn -> extract(:ok) end
+    assert {:error, :not_found} = normalize_error({:error, :not_found}, :test)
+
+    assert {:ok, 2} = normalize_error({:ok, 2})
+
+    assert :ok = normalize_error(:ok)
   end
 
-  test "is_error" do
-    refute is_error(:ok)
+  test "extract!" do
+    assert 1 = extract!({:ok, 1})
 
-    refute is_error({:ok, 1})
+    assert_raise ArgumentError, fn -> extract!({:error, 1}) end
 
-    assert is_error({:error, 1})
-  end
-
-  test "is_ok" do
-    assert is_ok(:ok)
-
-    assert is_ok({:ok, 1})
-
-    refute is_ok({:error, 1})
-  end
-
-  test "flip" do
-    assert {:error, "test"} = flip({:ok, "test"})
-
-    assert {:ok, "test"} = flip({:error, "test"})
-
-    assert_raise FunctionClauseError, fn -> flip(:ok) end
+    assert_raise FunctionClauseError, fn -> extract!(:ok) end
   end
 
   test "lift" do
@@ -219,10 +142,6 @@ defmodule ResultTest do
              |> lift("test", &(&1 <> "ed"))
   end
 
-  test "lift with side effects" do
-    # TODO: write side effect testing tests. Make sure it's lazy.
-  end
-
   test "map_error" do
     assert {:error, 3} = map_error({:error, 1}, fn x -> x + 2 end)
 
@@ -241,11 +160,7 @@ defmodule ResultTest do
     assert {:error, {:new_reason, "test"}} = mask_error({:error, 1}, {:new_reason, "test"})
   end
 
-  test "mask_error with side effects" do
-    # TODO: write side effect testing tests. Make sure it's lazy.
-  end
-
-  # TODO: add log level testing + function as second arg tests
+  # TODO: capture logs and test other log levels.
   test "log_error error case" do
     # logs generic error
     assert {:error, 1} ==
@@ -359,16 +274,6 @@ defmodule ResultTest do
     # TODO: write side effect tests
   end
 
-  test "sequence" do
-    assert {:error, 2} =
-             [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
-             |> sequence
-
-    assert {:ok, [1, 2, 3, 4]} =
-             [{:ok, 1}, {:ok, 2}, {:ok, 3}, {:ok, 4}]
-             |> sequence
-  end
-
   test "map_with_bind" do
     assert [{:ok, 6}, {:error, 12}, {:error, 3}, {:ok, 24}] =
              [{:ok, 1}, {:ok, 2}, {:error, 3}, {:ok, 4}]
@@ -383,91 +288,20 @@ defmodule ResultTest do
     assert {:ok, [3, 4, 5, 6]} = map_while_success([1, 2, 3, 4], fn x -> {:ok, x + 2} end)
   end
 
-  test "reduce_unless_error/2" do
-    assert {:ok, "dcba"} =
-             [{:ok, "a"}, {:ok, "b"}, {:ok, "c"}, {:ok, "d"}]
-             |> reduce_unless_error(&{:ok, &1 <> &2})
-
-    assert {:error, "b"} =
-             [{:ok, "a"}, {:error, "b"}, {:ok, "c"}, {:error, "d"}, {:ok, "e"}]
-             |> reduce_unless_error(&{:ok, &1 <> &2})
-
-    assert {:error, "B!"} =
-             [{:ok, "a"}, {:ok, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error(fn x, acc ->
-               if x == "b", do: {:error, "B!"}, else: {:ok, x <> acc}
-             end)
-
-    assert {:error, "b"} =
-             [{:ok, "a"}, {:error, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error(fn x, acc ->
-               if x == "b", do: {:error, "B!"}, else: {:ok, x <> acc}
-             end)
-  end
-
-  test "reduce_unless_error/3" do
+  test "reduce_while_success/3" do
     # Note: the order is wacky
     assert {:ok, "dcbae"} =
-             [{:ok, "a"}, {:ok, "b"}, {:ok, "c"}, {:ok, "d"}]
-             |> reduce_unless_error({:ok, "e"}, &{:ok, &1 <> &2})
+             ["a", "b", "c", "d"]
+             |> reduce_while_success("e", &{:ok, &1 <> &2})
 
-    assert {:error, "b"} =
-             [{:ok, "a"}, {:error, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error({:ok, "e"}, &{:ok, &1 <> &2})
-
-    assert {:error, "test"} =
-             [{:ok, "a"}, {:error, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error({:error, "test"}, &{:ok, &1 <> &2})
+    assert {:error, "test"}
 
     assert {:error, "B!"} =
-             [{:ok, "a"}, {:ok, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error(
-               {:ok, "e"},
+             ["a", "b", "c", "d"]
+             |> reduce_while_success(
+               "e",
                fn x, acc -> if x == "b", do: {:error, "B!"}, else: {:ok, x <> acc} end
              )
-
-    assert {:error, "b"} =
-             [{:ok, "a"}, {:error, "b"}, {:ok, "c"}, {:error, "d"}]
-             |> reduce_unless_error(
-               {:ok, "e"},
-               fn x, acc -> if x == "b", do: {:error, "B!"}, else: {:ok, x <> acc} end
-             )
-  end
-
-  test "stop_at_first_error" do
-    assert {:error, 3} =
-             [{:ok, 1}, {:error, 3}, {:ok, 2}, {:error, 4}]
-             |> stop_at_first_error
-
-    assert {:ok, 4} =
-             [{:ok, 1}, {:ok, 2}, {:ok, 3}, {:ok, 4}]
-             |> stop_at_first_error
-
-    assert {:error, 3} =
-             [{:ok, 1}, {:error, 3}, {:ok, 2}, {:error, 4}]
-             |> stop_at_first_error
-
-    assert {:ok, 4} =
-             [{:ok, 1}, {:ok, 2}, {:ok, 3}, {:ok, 4}]
-             |> stop_at_first_error
-
-    assert {:ok, 4} =
-             [{:ok, 1}, :ok, {:ok, 3}, {:ok, 4}]
-             |> stop_at_first_error
-
-    assert :ok =
-             [{:ok, 1}, {:ok, 2}, {:ok, 3}, :ok]
-             |> stop_at_first_error
-  end
-
-  test "filter" do
-    assert {:ok, [1]} =
-             [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
-             |> filter(fn x -> x < 3 end)
-
-    assert {:ok, [1, 4]} =
-             [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}]
-             |> filter(fn _ -> true end)
   end
 
   test "each_while_success" do
