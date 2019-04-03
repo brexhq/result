@@ -1,20 +1,14 @@
 defmodule Result.MixProject do
+  @moduledoc false
   use Mix.Project
 
   def project do
     [
       app: :result,
-      version: "0.1.2",
+      version: "0.1.3",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      docs: [
-        groups_for_functions: [
-          Base: &(&1[:result] == :base),
-          ErrorHelpers: &(&1[:result] == :helper),
-          Mappers: &(&1[:result] == :mapper)
-        ]
-      ]
+      deps: deps()
     ]
   end
 
