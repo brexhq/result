@@ -1,6 +1,6 @@
-defmodule Result.Base do
+defmodule Brex.Result.Base do
   @moduledoc """
-  Base TODO: fill in
+  Tools for doing basic result tuple manipulations.
   """
 
   @typep a :: any()
@@ -72,6 +72,7 @@ defmodule Result.Base do
       end
 
       def two_args(x, y), do: {:ok, x - y}
+
       {:ok, 1}
       ~> sgn
       = {:ok, "pos"}

@@ -122,6 +122,7 @@
         {Credo.Check.Refactor.Nesting, []},
         {Credo.Check.Refactor.PipeChainStart,
          [
+           excluded_functions: [~r(~>)],
            excluded_argument_types: [:atom, :binary, :fn, :keyword, :number]
          ]},
         {Credo.Check.Refactor.UnlessWithElse, []},
