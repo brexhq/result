@@ -1,5 +1,6 @@
 defmodule BaseTest do
   @moduledoc false
+
   use ExUnit.Case
 
   import Result.Base

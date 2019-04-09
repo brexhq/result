@@ -5,10 +5,10 @@ defmodule Result do
   Similar to the Either Monad in Haskell
 
   Result builds upon four building blocks:
-  - `Result.Base` - TODO
-  - `Result.Helpers` - TODO
-  - `Result.Mappers` - TODO
-  - `Utilities` - TODO
+  - `Result.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
+  - `Result.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
+  - `Result.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.
+
   """
   @moduledoc since: "0.1.3"
 
