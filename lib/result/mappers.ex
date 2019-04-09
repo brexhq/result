@@ -1,9 +1,9 @@
-defmodule Result.Mappers do
+defmodule Brex.Result.Mappers do
   @moduledoc """
-  Mappers TODO: fill in
+  Tools for combining `Enum` and result tuples.
   """
-  import Result.Base
-  alias Result.Base
+  import Brex.Result.Base
+  alias Brex.Result.Base
 
   @typep a :: any()
   @typep b :: any()
