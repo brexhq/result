@@ -1,4 +1,4 @@
-# Releasing a new version
+# Releasing a New Version
 
 ## Checklist
 

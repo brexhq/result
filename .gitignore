@@ -25,6 +25,3 @@ erl_crash.dump
 # MacOS
 .DS_Store
 
-# Ignore package tarball (built via "mix hex.build").
-result-*.tar
-
