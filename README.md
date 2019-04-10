@@ -171,7 +171,7 @@ iex> 2
 
 
 Other functions exist which aren't listed.
-### Getting Started
+# Getting Started
 
 ## Installation
 
