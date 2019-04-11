@@ -1,6 +1,6 @@
 defmodule Result.Helpers do
   @moduledoc """
-  Helpers TODO: fill in
+  Tools for dealing with the unhappy path. `Error` tuple manipulations.
   """
 
   import Result.Base
@@ -188,7 +188,6 @@ defmodule Result.Helpers do
   """
   @doc updated: "0.1.1"
   @doc since: "0.1.0"
-  # Note: `convert_error/2` is eager and that's fine.
   @spec convert_error(t(a), (any -> boolean) | any) :: t(a)
   def convert_error({:error, r} = ma, p) when is_function(p) do
     if p.(r), do: :ok, else: ma

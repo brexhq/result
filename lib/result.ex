@@ -4,7 +4,7 @@ defmodule Result do
       :ok | {:ok, val} | {:error, reason}
   Similar to the Either Monad in Haskell
 
-  Result builds upon four building blocks:
+  Result builds upon three building blocks:
   - `Result.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
   - `Result.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
   - `Result.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.

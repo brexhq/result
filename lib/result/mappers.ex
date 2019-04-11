@@ -1,6 +1,6 @@
 defmodule Result.Mappers do
   @moduledoc """
-  Mappers TODO: fill in
+  Tools for combining `Enum` and `ok`/`error` tuples.
   """
   import Result.Base
   alias Result.Base

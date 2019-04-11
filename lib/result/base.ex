@@ -1,6 +1,6 @@
 defmodule Result.Base do
   @moduledoc """
-  Base TODO: fill in
+  Tools for doing basic `ok`/`error` tuple manipulations.
   """
 
   @typep a :: any()
