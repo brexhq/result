@@ -7,9 +7,9 @@ end
 
 defmodule UpdateCustomer do
   @moduledoc """
-  Example using Result
+  Example using ExResult
   """
-  use Result
+  use ExResult
 
   def update_customerX(customer_id, params) do
     User

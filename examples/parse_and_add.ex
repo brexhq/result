@@ -1,8 +1,8 @@
 defmodule ParseAndAdd do
   @moduledoc """
-  Examples using Result
+  Examples using ExResult
   """
-  use Result
+  use ExResult
 
   require Logger
 
