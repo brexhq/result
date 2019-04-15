@@ -1,10 +1,10 @@
-defmodule Result.Helpers do
+defmodule ExResult.Helpers do
   @moduledoc """
   Tools for dealing with the unhappy path. `Error` tuple manipulations.
   """
 
-  import Result.Base
-  alias Result.Base
+  import ExResult.Base
+  alias ExResult.Base
 
   require Logger
 

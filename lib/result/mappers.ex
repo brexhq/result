@@ -1,9 +1,9 @@
-defmodule Result.Mappers do
+defmodule ExResult.Mappers do
   @moduledoc """
   Tools for combining `Enum` and `ok`/`error` tuples.
   """
-  import Result.Base
-  alias Result.Base
+  import ExResult.Base
+  alias ExResult.Base
 
   @typep a :: any()
   @typep b :: any()

@@ -3,9 +3,9 @@ defmodule BaseTest do
 
   use ExUnit.Case
 
-  import Result.Base
+  import ExResult.Base
 
-  doctest Result.Base
+  doctest ExResult.Base
 
   def sgn(x) do
     if x > 0 do
@@ -66,7 +66,7 @@ defmodule BaseTest do
 
     assert {:error, 1} = {:error, 1} |> inside_bind(&{:ok, &1})
 
-    assert {:ok, [3, 4, 5]} = {:ok, [1, 2, 3]} ~> Result.Mappers.map_while_success(&{:ok, &1 + 2})
+    assert {:ok, [3, 4, 5]} = {:ok, [1, 2, 3]} ~> ExResult.Mappers.map_while_success(&{:ok, &1 + 2})
 
     assert_raise ArgumentError, fn ->
       {:ok, 1} ~> (fn _ -> raise ArgumentError end).()

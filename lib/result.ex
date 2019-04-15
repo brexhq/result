@@ -1,18 +1,19 @@
-defmodule Result do
+defmodule ExResult do
   @moduledoc """
+   # TODO
   A library to handle error and success results and propagation.
       :ok | {:ok, val} | {:error, reason}
   Similar to the Either Monad in Haskell
 
-  Result builds upon three building blocks:
-  - `Result.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
-  - `Result.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
-  - `Result.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.
+  ExResult builds upon three building blocks:
+  - `ExResult.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
+  - `ExResult.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
+  - `ExResult.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.
 
   """
   @moduledoc since: "0.1.3"
 
-  alias Result.Base
+  alias ExResult.Base
 
   @type s(x) :: Base.s(x)
   @type t(x) :: Base.t(x)
@@ -25,14 +26,11 @@ defmodule Result do
 
   def version, do: @version
 
-  # Review: This is how exceptional https://github.com/expede/exceptional/tree/master/lib and some other libraries format their lib.
-  # Not sure if the using macro is super useful.
-
   defmacro __using__(_opts) do
     quote do
-      import Result.Base
-      import Result.Helpers
-      import Result.Mappers
+      import ExResult.Base
+      import ExResult.Helpers
+      import ExResult.Mappers
     end
   end
 end

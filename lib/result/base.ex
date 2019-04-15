@@ -1,4 +1,4 @@
-defmodule Result.Base do
+defmodule ExResult.Base do
   @moduledoc """
   Tools for doing basic `ok`/`error` tuple manipulations.
   """

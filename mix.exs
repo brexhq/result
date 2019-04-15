@@ -1,17 +1,17 @@
-defmodule Result.MixProject do
+defmodule ExResult.MixProject do
   @moduledoc false
   use Mix.Project
 
   def project do
     [
-      app: :result,
+      app: :ex_result,
       version: "0.1.3",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      name: "Result",
-      source_url: "https://github.com/veyond-card/result",
-      docs: [extras: ["CONTRIBUTING.md", "CHANGELOG.md", "README.md", "RELEASING.md"]]
+      name: "ExResult",
+      source_url: "https://github.com/brexhq/ex_result",
+      docs: [extras: ["README.md", "CONTRIBUTING.md", "CHANGELOG.md", "RELEASING.md"]]
     ]
   end
 

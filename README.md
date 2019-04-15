@@ -1,54 +1,43 @@
-# Overview
+# ExResult
 
-This library provides tools to deal with three common return values in Elixir
+This library provides tools to handle three common return values in Elixir
     :ok | {:ok, value} | {:error, reason}
+
+## Overview
+
+ExResult is split into three main components:
+
+- `ExResult.Base` - Base provides tools for doing basic `ok`/`error` tuple manipulations. The tools there follow the property: if the value given is a success value, apply the function, otherwise propogate the error.
+If there’s a success continue, if there’s an error propagate it.
+ They provide tools to build the happy path.
+- `ExResult.Helpers` - Helpers includes tools for manipulating `error tuples`. Convience functions for handling the unhappy path.
+- `ExResult.Mappers` - Mappers includes tools for applying functions that return `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
+
+Include the line `use ExResult` to import the entire library or `import ExResult.{Base, Helpers, Mappers}` to import the modules individually.
+
+## Differences from Similar Libraries
+There are some other libraries that concept of monadic error handling.
+[OK](https://github.com/CrowdHailer/OK)
+
+ExResult separates itself by:
+
+- Extending support beyond classic monadic functions
+  - support for `:ok` as a success value
+  - support for modifying `errors`
+  - support for mapping functions that return `ok | {:ok, value} | {:error, reason}` over `enumerables`
+- Staying true to elixir roots
+  - encourages use of elixir builtins like the `with` statement when appropriate
+  - provides style guidelines
+  - actively avoids heavy macro magic that can turn a library into a DSL
 
 ## Definitions
 
-**Result tuples** refers to `{:ok, value} | {:error, reason}`
-
-**Ok/Error tuples**
-
-**Error tuples** `{:error, reason}`
-
-**Success tuples** `{:ok, value}`
-
-**Success values** `:ok | {:ok, value}`
-
-**Happy path** The path of code execution where each ___ is successful.
-
-**Unhappy path** The path of code execution where errors are encountered. Once you have an error, how do you deal with it.
-
-## Map
-
-  Result builds upon three building blocks:
-  - `Result.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
-  - `Result.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
-  - `Result.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.
-
-## Differences from other similar libs
-- support for `:ok` as a success value
-- support for enums
-- error tuple manipulators, ways to reenter the happy path
-
-
-See the examples folder for more intense examples
-## Guiding Principles
-
-### Don't use this library
-That is only use this library when it significantly improves the readability & of code. Many elixir are built ins are sufficient for our needs.
-Use the `with` statement when it makes sense.
-
-
-`ExResult` is a library that
-
-If there’s a success continue, if there’s an error propagate it.
-
-Monadic Error Handling - but that's not all.
-
-- not an academic project, this library is in use at the enterprise level
-- doesn't over haskellize
-  - while pure functional programming has definitely inspired this library, it tries to stay true to it's elixir roots. We like the  `with` statement and don't wish to abolish it. We prefer explicit code to magical macros or custom structures. These tools are meant to facilitate writing readable exiliry code rather than creating a subdialect of elixir or a DSL.
+- **Ok/Error tuples**:`{:ok, value} | {:error, reason}`
+- **Error tuples**: `{:error, reason}`
+- **OK/Success tuples**: `{:ok, value}`
+- **Success values**: `:ok | {:ok, value}`
+- **Happy path**: The path of code execution where each ___ is successful.
+- **Unhappy path**: The path of code execution where errors are encountered. Once you have an error, how do you deal with it.
 
 ## Types
 
@@ -66,7 +55,8 @@ Convienence types
 ```
 
 **Style Recommendation**
-Specs and Callbacks. It's recommended that you write specs for your functions usings these shorthands.
+
+It is recommended that you write specs and callbacks usings these shorthands.
 
 ```elixir
 @spec my_fun({:ok, String.t} | {:error, any}, Integer) :: :ok | {:error, any}
@@ -75,12 +65,10 @@ Specs and Callbacks. It's recommended that you write specs for your functions us
 ```elixir
 @spec my_fun(Result.s(String.t), Integer) :: Result.p()
 ```
+
 ## Base
 
-In base:
-
-Use `ok/1` to wrap a value in an ok tuple.
-(Discouraged for all `ok` tuples. Best for the final action in a pipe chain.)
+Use `ExResult.Base.ok/1` to wrap a value in an `ok` tuple.
 
 ```elixir
   iex> 2
@@ -88,37 +76,34 @@ Use `ok/1` to wrap a value in an ok tuple.
   {:ok, 2}
 ```
 
+`ExResult.Base.error/1` wraps a value in an `error` tuple.
+
 ```elixir
   iex> :not_found
   ...> |> error
   {:error, :not_found}
 ```
 
-**Style Recommendation**
+#### Style Recommendation
+
 Only use `ok/1` and `error/1` at the end of pipe chains. While they can be used directly or in case patterns, the tuple syntax is more explicit and no more cumbersome in those events.
 
-No
 ```elixir
+ # No
   ok(2)
-```
 
-Yes
-```elixir
+# Yes
   {:ok, 2}
-```
 
-No
-```elixir
+# No
   val =
     arg
     |> get_values()
     |> transform(other_arg)
 
 {:ok, val}
-```
 
-Yes
-```elixir
+# Yes
   arg
   |> get_values()
   |> transform(other_arg)
@@ -130,7 +115,7 @@ Error is unchanged.
 
 ```elixir
 iex> {:ok, 2}
-...> |> fmap( fn x -> x + 5 end)
+...> |> fmap(fn x -> x + 5 end)
 {:ok, 7}
 
 iex> {:error, :not_found}
@@ -153,14 +138,27 @@ iex> {:error, :not_found}
 
 ```
 
+#### Style Recommendation
 
-**Style Recommendation**
-use `~>` in a pipe chain when the function argument is named and short (one line). If the function argument is anonymous use `|> bind`. When only a single `~>` is needed just use prefix bind in normal form, avoid the single `~>`.
+Avoid single `~>`s and only use `~>` when the function argument is named and fits onto one line.
 
-No
 ```elixir
+# No
+{:ok, file}
+~> File.read
 
+# Yes
+bind({:ok, file}, &File.read/1)
 
+# No
+{:ok, val}
+~> (fn x -> if x > 0, do: {:ok, x}, else: {:error, neg}).()
+~> insert_amount
+
+# Yes
+{:ok, val}
+|> bind(fn x -> if x > 0, do: {:ok, x}, else: {:error, neg})
+~> insert_amount
 ```
 
 ## Helpers
@@ -209,7 +207,7 @@ iex> {:error, :not_found}
 
 Also some are provided to enter the monadic scope:
 
-If the value matches the predicate then it is lifted into an error tuple and it's reason replaced by the 3rd argument.
+
 
 ```elixir
 iex> :error
@@ -225,6 +223,8 @@ iex> :ok
 :ok
 ```
 
+If the value matches the predicate then it is lifted into an error tuple and it's reason replaced by the 3rd argument.
+
 ```elixir
 iex> nil
 ...> |> lift(nil, :not_found)
@@ -238,32 +238,27 @@ iex> 2
 ## Mappers
 
 Plain values
-`map_while_success/2`, `each_while_success/2`, `reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`
+`ExResult.Mappers.map_while_success/2`, `ExResult.Mappers.each_while_success/2`, `ExResult.Mappers.reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`
 
 
 Other functions exist which aren't listed.
-# Getting Started
+See the examples folder for more intense examples.
+
+## Known Problems
+
+- Incorrect specs on macros according to dialyzer, but they are very useful in documentation.
+- Credo complains pipe chain is not started with raw value when preceeded by `~>`.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `result` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `ex_result` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:result, "~> 0.1.3"}
+    {:ex_result, "~> 0.1.3"}
   ]
 end
 ```
 
-## Usage
-
-`use Result` to import all 3 modules.
-
-or `import Result.*` to import individually
-
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/result](https://hexdocs.pm/result).
+Docs can be found at [https://hexdocs.pm/ex_result](https://hexdocs.pm/ex_result).
