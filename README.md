@@ -128,7 +128,7 @@ iex> {:error, :not_found}
 {:error, :not_found}
 ```
 
-Use `Brex.Result.Base.bind/2` to apply a function that returns a result tuple to the value within a success tuple. Returns a flattened result tuple.
+Use `Brex.Result.Base.bind/2` to apply a function to the value within a success tuple. The function *must* returns a result tuple.
 
 ```elixir
 iex> {:ok, 2}
