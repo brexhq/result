@@ -2,9 +2,9 @@ defmodule HelpersTest do
   @moduledoc false
   use ExUnit.Case
 
-  import ExResult.Helpers
+  import Brex.Result.Helpers
 
-  doctest ExResult.Helpers
+  doctest Brex.Result.Helpers
 
   test "normalize_error" do
     assert {:error, :test} = normalize_error(:error, :test)

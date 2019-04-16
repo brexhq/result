@@ -1,4 +1,4 @@
-defmodule ExResult.Base do
+defmodule Brex.Result.Base do
   @moduledoc """
   Tools for doing basic `ok`/`error` tuple manipulations.
   """

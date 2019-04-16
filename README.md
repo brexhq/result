@@ -1,4 +1,4 @@
-# ExResult
+# Brex.Result
 
 This library provides tools to handle three common return values in Elixir
 
@@ -8,23 +8,23 @@ This library provides tools to handle three common return values in Elixir
 
 ## Overview
 
-`ExResult` is split into three main components:
+`Brex.Result` is split into three main components:
 
-- `ExResult.Base` - Base provides tools for creating and passing around `ok`/`error` tuples. The tools follow the property: if there’s a success continue the computation, if there’s an error propagate it.
-- `ExResult.Helpers` - Helpers includes tools for modifying the reason in `error` tuples. The functions in this module always propogate the success value.
-- `ExResult.Mappers` - Mappers includes tools for applying functions that return `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
+- `Brex.Result.Base` - Base provides tools for creating and passing around `ok`/`error` tuples. The tools follow the property: if there’s a success continue the computation, if there’s an error propagate it.
+- `Brex.Result.Helpers` - Helpers includes tools for modifying the reason in `error` tuples. The functions in this module always propogate the success value.
+- `Brex.Result.Mappers` - Mappers includes tools for applying functions that return `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
 
 ## Usage
 
-Include the line `use ExResult` to import the entire library or `import ExResult.{Base, Helpers, Mappers}` to import the modules individually.
+Include the line `use Brex.Result` to import the entire library or `import Brex.Result.{Base, Helpers, Mappers}` to import the modules individually.
 
-A sampling of functions and examples are provided below. For more in-depth examples see [examples](https://github.com/brexhq/ex_result/tree/master/examples).
+A sampling of functions and examples are provided below. For more in-depth examples see [examples](https://github.com/brexhq/result/tree/master/examples).
 
 ## Differences from Similar Libraries
 
-Other libraries like [OK](https://github.com/CrowdHailer/OK), [Monad](https://github.com/rmies/monad), and [Ok Jose](https://github.com/vic/ok_jose) have embraced the concept of monadic error handling and have analogous functions to the ones we have in `ExResult.Base`.
+Other libraries like [OK](https://github.com/CrowdHailer/OK), [Monad](https://github.com/rmies/monad), and [Ok Jose](https://github.com/vic/ok_jose) have embraced the concept of monadic error handling and have analogous functions to the ones we have in `Brex.Result.Base`.
 
-`ExResult` separates itself by:
+`Brex.Result` separates itself by:
 
 - Extending support beyond classic monadic functions
   - support for `:ok` as a success value
@@ -69,12 +69,12 @@ Write specs and callbacks usings these shorthands.
 ```
 
 ```elixir
-@spec my_fun(ExResult.s(String.t), Integer) :: ExResult.p()
+@spec my_fun(Brex.Result.s(String.t), Integer) :: Brex.Result.p()
 ```
 
 ## Base
 
-Use `ExResult.Base.ok/1` to wrap a value in an `ok` tuple.
+Use `Brex.Result.Base.ok/1` to wrap a value in an `ok` tuple.
 
 ```elixir
 iex> 2
@@ -82,7 +82,7 @@ iex> 2
 {:ok, 2}
 ```
 
-`ExResult.Base.error/1` wraps a value in an `error` tuple.
+`Brex.Result.Base.error/1` wraps a value in an `error` tuple.
 
 ```elixir
 iex> :not_found
@@ -116,7 +116,7 @@ arg
 |> ok
 ```
 
-Use `ExResult.Base.fmap/2` to transform the value within a success tuple. It propogates the error value.
+Use `Brex.Result.Base.fmap/2` to transform the value within a success tuple. It propogates the error value.
 
 ```elixir
 iex> {:ok, 2}
@@ -128,7 +128,7 @@ iex> {:error, :not_found}
 {:error, :not_found}
 ```
 
-Use `ExResult.Base.bind/2` to apply a function that returns a result tuple to the value within a success tuple. Returns a flattened result tuple.
+Use `Brex.Result.Base.bind/2` to apply a function that returns a result tuple to the value within a success tuple. Returns a flattened result tuple.
 
 ```elixir
 iex> {:ok, 2}
@@ -144,7 +144,7 @@ iex> {:error, :not_found}
 {:error, :not_found}
 ```
 
-Infix bind is given for convience as `ExResult.Base.~>/2`
+Infix bind is given for convience as `Brex.Result.Base.~>/2`
 
 ```elixir
 iex> {:ok, [[1, 2, 3, 4]}
@@ -178,7 +178,7 @@ bind({:ok, file}, &File.read/1)
 
 ## Helpers
 
-`ExResult..Helpers.map_error/2` allows you to transform the reason in an `error` tuple.
+`Brex.Result.Helpers.map_error/2` allows you to transform the reason in an `error` tuple.
 
 ```elixir
 iex> {:error, 404}
@@ -194,7 +194,7 @@ iex> :ok
 :ok
 ```
 
-`ExResult..Helpers.mask_error/2` disregards the current reason and replaces it with the second argument.
+`Brex.Result.Helpers.mask_error/2` disregards the current reason and replaces it with the second argument.
 
 ```elixir
 iex> {:error, :not_found}
@@ -202,7 +202,7 @@ iex> {:error, :not_found}
 {:error, :failure}
 ```
 
-`ExResult..Helpers.convert_error/3` converts an `error` into a success value if the reason matches the second argument.
+`Brex.Result.Helpers.convert_error/3` converts an `error` into a success value if the reason matches the second argument.
 
 ```elixir
 iex> {:error, :not_found}
@@ -214,7 +214,7 @@ iex> {:error, :not_found}
 {:ok, default}
 ```
 
-`ExResult.Helpers.log_error/3` logs on error. It automatically includes the reason in the log metadata.
+`Brex.Result.Helpers.log_error/3` logs on error. It automatically includes the reason in the log metadata.
 
 ```elixir
 iex> {:error, :not_found}
@@ -222,7 +222,7 @@ iex> {:error, :not_found}
 {:error, :not_found}
 ```
 
-`ExResult.Helpers.normalize_error/2` converts a naked `:error` atom into an `error` tuple. It's good for functions from outside libraries.
+`Brex.Result.Helpers.normalize_error/2` converts a naked `:error` atom into an `error` tuple. It's good for functions from outside libraries.
 
 ```elixir
 iex> :error
@@ -240,7 +240,7 @@ iex> :ok
 
 ## Mappers
 
-`ExResult.Mappers.map_while_success/2`, `ExResult.Mappers.each_while_success/2`, `ExResult.Mappers.reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`, but take a function that returns `:ok | {:ok, value} | {:error, reason}` as the mapping/reducing argument. Each of these functions produce a success value containing the final result or the first `error`.
+`Brex.Result.Mappers.map_while_success/2`, `Brex.Result.Mappers.each_while_success/2`, `Brex.Result.Mappers.reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`, but take a function that returns `:ok | {:ok, value} | {:error, reason}` as the mapping/reducing argument. Each of these functions produce a success value containing the final result or the first `error`.
 
 ## Known Problems
 
@@ -249,14 +249,14 @@ iex> :ok
 
 ## Installation
 
-The package can be installed by adding `ex_result` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `brex_result` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ex_result, "~> 0.1.3"}
+    {:brex_result, "~> 0.1.3"}
   ]
 end
 ```
 
-Docs can be found at [https://hexdocs.pm/ex_result](https://hexdocs.pm/ex_result).
+Docs can be found at [https://hexdocs.pm/brex_result](https://hexdocs.pm/brex_result).

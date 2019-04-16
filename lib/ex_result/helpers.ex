@@ -1,10 +1,10 @@
-defmodule ExResult.Helpers do
+defmodule Brex.Result.Helpers do
   @moduledoc """
   Tools for modifying the reason in `error` tuples.
   """
 
-  import ExResult.Base
-  alias ExResult.Base
+  import Brex.Result.Base
+  alias Brex.Result.Base
 
   require Logger
 

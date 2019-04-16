@@ -1,16 +1,16 @@
-defmodule ExResult.MixProject do
+defmodule Brex.Result.MixProject do
   @moduledoc false
   use Mix.Project
 
   def project do
     [
-      app: :ex_result,
+      app: :brex_result,
       version: "0.1.3",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      name: "ExResult",
-      source_url: "https://github.com/brexhq/ex_result",
+      name: "Brex.Result",
+      source_url: "https://github.com/brexhq/result",
       docs: [extras: ["README.md", "CONTRIBUTING.md", "CHANGELOG.md", "RELEASING.md"]]
     ]
   end

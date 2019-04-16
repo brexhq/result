@@ -1,9 +1,9 @@
-defmodule ExResult.Mappers do
+defmodule Brex.Result.Mappers do
   @moduledoc """
   Tools for combining `Enum` and `ok`/`error` tuples.
   """
-  import ExResult.Base
-  alias ExResult.Base
+  import Brex.Result.Base
+  alias Brex.Result.Base
 
   @typep a :: any()
   @typep b :: any()
