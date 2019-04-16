@@ -1,7 +1,10 @@
 # ExResult
 
 This library provides tools to handle three common return values in Elixir
+
+```elixir
 :ok | {:ok, value} | {:error, reason}
+```
 
 ## Overview
 
@@ -34,7 +37,7 @@ Other libraries like [OK](https://github.com/CrowdHailer/OK), [Monad](https://gi
 
 ## Definitions
 
-- **Ok/Error tuples**:`{:ok, value} | {:error, reason}`
+- **Result tuples**:`{:ok, value} | {:error, reason}`
 - **Error tuples**: `{:error, reason}`
 - **OK/Success tuples**: `{:ok, value}`
 - **Success values**: `:ok | {:ok, value}`
@@ -45,16 +48,16 @@ Other libraries like [OK](https://github.com/CrowdHailer/OK), [Monad](https://gi
 Parametrized types
 
 ```elixir
-  @type s(x) :: {:ok, x} | {:error, any}
-  @type t(x) :: :ok | s(x)
+@type s(x) :: {:ok, x} | {:error, any}
+@type t(x) :: :ok | s(x)
 ```
 
-Convienence types
+Convenience types
 
 ```elixir
-  @type p() :: :ok | {:error, any}
-  @type s() :: s(any)
-  @type t() :: t(any)
+@type p() :: :ok | {:error, any}
+@type s() :: s(any)
+@type t() :: t(any)
 ```
 
 #### Style Recommendation
@@ -74,17 +77,17 @@ Write specs and callbacks usings these shorthands.
 Use `ExResult.Base.ok/1` to wrap a value in an `ok` tuple.
 
 ```elixir
-  iex> 2
-  ...> |> ok
-  {:ok, 2}
+iex> 2
+...> |> ok
+{:ok, 2}
 ```
 
 `ExResult.Base.error/1` wraps a value in an `error` tuple.
 
 ```elixir
-  iex> :not_found
-  ...> |> error
-  {:error, :not_found}
+iex> :not_found
+...> |> error
+{:error, :not_found}
 ```
 
 #### Style Recommendation
@@ -92,25 +95,25 @@ Use `ExResult.Base.ok/1` to wrap a value in an `ok` tuple.
 Only use `ok/1` and `error/1` at the end of pipe chains. While they can be used directly or in case patterns, the tuple syntax is more explicit and no more cumbersome in those events.
 
 ```elixir
- # No
-  ok(2)
+# No
+ok(2)
 
 # Yes
-  {:ok, 2}
+{:ok, 2}
 
 # No
-  val =
-    arg
-    |> get_values()
-    |> transform(other_arg)
+val =
+  arg
+  |> get_values()
+  |> transform(other_arg)
 
 {:ok, val}
 
 # Yes
-  arg
-  |> get_values()
-  |> transform(other_arg)
-  |> ok
+arg
+|> get_values()
+|> transform(other_arg)
+|> ok
 ```
 
 Use `ExResult.Base.fmap/2` to transform the value within a success tuple. It propogates the error value.
@@ -121,11 +124,11 @@ iex> {:ok, 2}
 {:ok, 7}
 
 iex> {:error, :not_found}
-...> |> fmap(fn x, 5 -> x + 5 end)
+...> |> fmap(fn x -> x + 5 end)
 {:error, :not_found}
 ```
 
-Use `ExResult.Base.bind/2` to apply a function that returns an `ok/error` tuple to an `ok/error` tuple.
+Use `ExResult.Base.bind/2` to apply a function that returns a result tuple to the value within a success tuple. Returns a flattened result tuple.
 
 ```elixir
 iex> {:ok, 2}
@@ -157,7 +160,7 @@ Avoid single `~>`s and only use `~>` when the function argument is named and fit
 ```elixir
 # No
 {:ok, file}
-~> File.read
+~> File.read()
 
 # Yes
 bind({:ok, file}, &File.read/1)
@@ -165,12 +168,12 @@ bind({:ok, file}, &File.read/1)
 # No
 {:ok, val}
 ~> (fn x -> if x > 0, do: {:ok, x}, else: {:error, neg}).()
-~> insert_amount
+~> insert_amount()
 
 # Yes
 {:ok, val}
 |> bind(fn x -> if x > 0, do: {:ok, x}, else: {:error, neg})
-~> insert_amount
+~> insert_amount()
 ```
 
 ## Helpers
@@ -198,6 +201,8 @@ iex> {:error, :not_found}
 ...> |> mask_error(:failure)
 {:error, :failure}
 ```
+
+`ExResult..Helpers.convert_error/3` converts an `error` into a success value if the reason matches the second argument.
 
 ```elixir
 iex> {:error, :not_found}
@@ -235,7 +240,7 @@ iex> :ok
 
 ## Mappers
 
-`ExResult.Mappers.map_while_success/2`, `ExResult.Mappers.each_while_success/2`, `ExResult.Mappers.reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`, but take a function that returns `:ok | {:ok, value} |{:error, reason}` as the mapping/reducing argument. Each of these functions produce a success value containing the final result or the first `error`.
+`ExResult.Mappers.map_while_success/2`, `ExResult.Mappers.each_while_success/2`, `ExResult.Mappers.reduce_while_success/3` all mimic the Enum functions `Enum.map/2`, `Enum.each/2`, `Enum.reduce/3`, but take a function that returns `:ok | {:ok, value} | {:error, reason}` as the mapping/reducing argument. Each of these functions produce a success value containing the final result or the first `error`.
 
 ## Known Problems
 
