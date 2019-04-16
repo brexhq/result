@@ -72,6 +72,7 @@ defmodule ExResult.Base do
       end
 
       def two_args(x, y), do: {:ok, x - y}
+
       {:ok, 1}
       ~> sgn
       = {:ok, "pos"}

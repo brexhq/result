@@ -1,6 +1,6 @@
 defmodule ExResult.Helpers do
   @moduledoc """
-  Tools for dealing with the unhappy path. `Error` tuple manipulations.
+  Tools for modifying the reason in `error` tuples.
   """
 
   import ExResult.Base

@@ -1,14 +1,24 @@
 defmodule ExResult do
   @moduledoc """
-   # TODO
-  A library to handle error and success results and propagation.
-      :ok | {:ok, val} | {:error, reason}
-  Similar to the Either Monad in Haskell
+  This library provides tools to handle three common return values in Elixir
 
-  ExResult builds upon three building blocks:
-  - `ExResult.Base` - Tools for doing basic `ok`/`error` tuple manipulations.
-  - `ExResult.Helpers` - Tools for dealing with the unhappy path. `Error` tuple manipulations.
-  - `ExResult.Mappers` - Tools for combining `Enum` and `ok`/`error` tuples.
+      :ok | {:ok, value} | {:error, reason}
+
+  `ExResult` is split into three main components:
+
+  - `ExResult.Base` - Base provides tools for creating and passing around `ok`/`error` tuples.
+    The tools follow the property: if there’s a success continue the computation, if there’s an error propagate it.
+  - `ExResult.Helpers` - Helpers includes tools for modifying the reason in `error` tuples.
+    The functions in this module always propogate the success value.
+  - `ExResult.Mappers` - Mappers includes tools for applying functions that return
+    `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
+
+  To import the entire library:
+      use ExResult
+  To import the modules individually:
+      import ExResult.Base
+      import ExResult.Helpers
+      import ExResult.Mappers
 
   """
   @moduledoc since: "0.1.3"
@@ -24,6 +34,7 @@ defmodule ExResult do
 
   @version Mix.Project.config()[:version]
 
+  @doc false
   def version, do: @version
 
   defmacro __using__(_opts) do
