@@ -7,9 +7,9 @@ end
 
 defmodule UpdateCustomer do
   @moduledoc """
-  Example using ExResult
+  Example using Brex.Result
   """
-  use ExResult
+  use Brex.Result
 
   def update_customerX(customer_id, params) do
     User

@@ -1,8 +1,8 @@
 defmodule ParseAndAdd do
   @moduledoc """
-  Examples using ExResult
+  Examples using Brex.Result
   """
-  use ExResult
+  use Brex.Result
 
   require Logger
 
