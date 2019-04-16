@@ -1,10 +1,10 @@
-defmodule Result.Helpers do
+defmodule Brex.Result.Helpers do
   @moduledoc """
-  Helpers TODO: fill in
+  Tools for modifying the reason in `error` tuples.
   """
 
-  import Result.Base
-  alias Result.Base
+  import Brex.Result.Base
+  alias Brex.Result.Base
 
   require Logger
 
@@ -188,7 +188,6 @@ defmodule Result.Helpers do
   """
   @doc updated: "0.1.1"
   @doc since: "0.1.0"
-  # Note: `convert_error/2` is eager and that's fine.
   @spec convert_error(t(a), (any -> boolean) | any) :: t(a)
   def convert_error({:error, r} = ma, p) when is_function(p) do
     if p.(r), do: :ok, else: ma

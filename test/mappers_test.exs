@@ -2,9 +2,9 @@ defmodule MappersTest do
   @moduledoc false
   use ExUnit.Case
 
-  import Result.Mappers
+  import Brex.Result.Mappers
 
-  doctest Result.Mappers
+  doctest Brex.Result.Mappers
 
   test "map_with_bind" do
     assert [{:ok, 6}, {:error, 12}, {:error, 3}, {:ok, 24}] =
