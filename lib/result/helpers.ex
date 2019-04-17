@@ -33,7 +33,7 @@ defmodule Brex.Result.Helpers do
       {:ok, 2}
 
   """
-  @doc since: "0.1.2"
+  @doc since: "0.3.0"
   @spec normalize_error(any, any) :: t()
   def normalize_error(x, reason \\ :normalized) do
     case x do
@@ -70,7 +70,7 @@ defmodule Brex.Result.Helpers do
       {:error, {:oops, "tested"}}
 
   """
-  @doc updated: "0.1.1"
+  @doc updated: "0.2.0"
   @doc since: "0.1.0"
   @spec lift(a | b, b | (a | b -> boolean), c | (a | b -> c)) :: s(a)
   defmacro lift(val, p, f) do
@@ -122,7 +122,7 @@ defmodule Brex.Result.Helpers do
       {:error, {:nonexistent_account, "test"}}
 
   """
-  @doc updated: "0.1.1"
+  @doc updated: "0.2.0"
   @doc since: "0.1.0"
   @spec mask_error(t(a), any) :: t(a)
   defmacro mask_error(ma, term) do
@@ -144,7 +144,7 @@ defmodule Brex.Result.Helpers do
       |> log_error("There was an error", level: :info, metadata: "some meta")
 
   """
-  @doc updated: "0.1.1"
+  @doc updated: "0.2.0"
   @doc since: "0.1.0"
   # TODO: refine the type of second argument
   @spec log_error(t(a), String.t() | (any -> any), Keyword.t()) :: t(a)
@@ -186,7 +186,7 @@ defmodule Brex.Result.Helpers do
       :ok
 
   """
-  @doc updated: "0.1.1"
+  @doc updated: "0.2.0"
   @doc since: "0.1.0"
   @spec convert_error(t(a), (any -> boolean) | any) :: t(a)
   def convert_error({:error, r} = ma, p) when is_function(p) do
@@ -217,7 +217,7 @@ defmodule Brex.Result.Helpers do
       {:ok, "tested"}
 
   """
-  @doc updated: "0.1.1"
+  @doc updated: "0.2.0"
   @doc since: "0.1.0"
   @spec convert_error(t(a), (any -> boolean) | any, b | (any -> t(b))) :: t(b)
   defmacro convert_error(ma, p, f) do

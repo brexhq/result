@@ -21,7 +21,7 @@ defmodule Brex.Result do
       import Brex.Result.Mappers
 
   """
-  @moduledoc since: "0.1.3"
+  @moduledoc since: "0.4.0"
 
   alias Brex.Result.Base
 

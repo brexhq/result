@@ -78,7 +78,7 @@ defmodule Brex.Result.Mappers do
       {:error, 3}
 
   """
-  @doc since: "0.1.2"
+  @doc since: "0.3.0"
   @spec reduce_while_success(Enum.t(a), t(b), (a, b -> t(b))) :: t(b)
   def reduce_while_success(ms, b, f) do
     Enum.reduce_while(ms, b, fn a, acc ->
@@ -105,7 +105,7 @@ defmodule Brex.Result.Mappers do
       :ok
 
   """
-  @doc since: "0.1.1"
+  @doc since: "0.2.0"
   @spec each_while_success(Enum.t(a), (a -> p())) :: p()
   def each_while_success(ms, f) do
     Enum.reduce_while(ms, :ok, fn x, _acc ->
