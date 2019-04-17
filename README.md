@@ -254,7 +254,7 @@ The package can be installed by adding `brex_result` to your list of dependencie
 ```elixir
 def deps do
   [
-    {:brex_result, "~> 0.1.3"}
+    {:brex_result, "~> 0.4.0"}
   ]
 end
 ```

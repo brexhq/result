@@ -1,65 +1,6 @@
 # Changelog
 
-## v0.1.3 04/10/19
-
-**Removed**
-
-```elixir
-    @doc """
-    A dangerous pattern matching gaurd.
-        on_match(expr, pattern, f)
-    is equivalent to:
-        case expr of
-            pattern -> f.(expr)
-            _ -> expr
-
-    ## Examples:
-
-        iex> {:bad, 1}
-        ...> |> on_match({:good, _}, fn x -> x + 2 end)
-        {:bad, 1}
-
-        iex> {:good, 1}
-        ...> |> on_match({:good, _}, fn {:good, x} -> x + 2 end)
-        3
-
-    """
-    @spec on_match(any, any, (any -> any)) :: any
-```
-
-```elixir
-    @doc """
-    Given a pattern, it will return a function from expression to boolean.
-    This function returns true if the expression matches the pattern and false otherwise.
-
-    ## Examples:
-
-        iex> (match_pred({:good, _})).({:good, 1})
-        true
-
-        iex> (match_pred({:good, _})).({:bad, 1})
-        false
-
-    """
-    @spec match_pred(any) :: (any -> boolean)
-```
-
-```elixir
-    @doc """
-    Partitions an enum of tuples by their first element.
-    Returns a map where the keys are the first elements of the tuples
-    and the values are enums of the second elements that correspond.
-    No guarantee on the order of the returned lists. (In fact they are generally backwards.)
-
-    ## Example:
-
-        iex> [{:ok, 1}, {:error, 2}, {:error, 3}, {:ok, 4}, {:other, 1}]
-        ...> |> partition
-        %{ok: [4, 1], error: [3, 2], other: [1]}
-
-    """
-    @spec partition(Enum.t({atom, any})) :: %{required(atom) => Enum.t()}
-```
+## v0.4.0 04/10/19
 
 **Removed**
 
@@ -126,7 +67,7 @@
 - split `Base`, `Helpers`, and `Mappers` into different files
 - created a `using` macro to `import` entire library
 
-## v0.1.2 03/25/19
+## v0.3.0 03/25/19
 
 **Added:**
 
@@ -295,7 +236,7 @@ s/`extract`/`extract!`/g
 
 Enforced return type on `bind/2`
 
-## v0.1.1 12/11/18
+## v0.2.0 12/11/18
 
 **Added:**
 

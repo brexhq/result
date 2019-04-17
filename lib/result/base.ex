@@ -45,7 +45,7 @@ defmodule Brex.Result.Base do
       {:error, 4}
 
   """
-  @doc updated: "0.1.2"
+  @doc updated: "0.3.0"
   @doc since: "0.1.0"
   @spec bind(s(a), (a -> s(b))) :: s(b)
   def bind({:error, r}, _), do: {:error, r}
@@ -90,7 +90,7 @@ defmodule Brex.Result.Base do
       = {:ok, 1}
 
   """
-  @doc updated: "0.1.3"
+  @doc updated: "0.4.0"
   @doc since: "0.1.0"
   @spec t(a) ~> (a -> t(b)) :: t(b)
   defmacro arg ~> fun do
@@ -139,7 +139,7 @@ defmodule Brex.Result.Base do
       {:error, :not_found}
 
   """
-  @doc since: "0.1.1"
+  @doc since: "0.2.0"
   @spec ignore(t(a)) :: p()
   def ignore({:error, r}), do: {:error, r}
   def ignore({:ok, _val}), do: :ok
@@ -149,7 +149,7 @@ defmodule Brex.Result.Base do
     Extracts the value or reason from the tuple.
     Caution: If given an `error` tuple it raise an exception!
   """
-  @doc updated: "0.1.2"
+  @doc updated: "0.3.0"
   @doc since: "0.1.0"
   @spec extract!(s(a)) :: a
   def extract!({:error, _} = ma) do
