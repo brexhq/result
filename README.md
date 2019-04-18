@@ -1,3 +1,5 @@
+![](https://github.com/brexhq/result/blob/master/Brex.Result.png)
+
 # Brex.Result
 
 This library provides tools to handle three common return values in Elixir
@@ -5,6 +7,19 @@ This library provides tools to handle three common return values in Elixir
 ```elixir
 :ok | {:ok, value} | {:error, reason}
 ```
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Usage](#usage)
+- [Differences rom Similar Libraries](#differences-from-similar-libraries)
+- [Definitions](#definitions)
+- [Types](#types)
+- [Base](#base)
+- [Helpers](#helpers)
+- [Mappers](#mappers)
+- [Known Problems](#known-problems)
+- [Installation](#installation)
 
 ## Overview
 
@@ -128,7 +143,7 @@ iex> {:error, :not_found}
 {:error, :not_found}
 ```
 
-Use `Brex.Result.Base.bind/2` to apply a function to the value within a success tuple. The function *must* returns a result tuple.
+Use `Brex.Result.Base.bind/2` to apply a function to the value within a success tuple. The function _must_ returns a result tuple.
 
 ```elixir
 iex> {:ok, 2}
