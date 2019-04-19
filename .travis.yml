@@ -1,0 +1,29 @@
+language: elixir
+elixir:
+- 1.7.2
+- 1.8.1
+otp_release:
+- 20.0
+- 21.0
+env:
+  matrix:
+  - MIX_ENV=test
+  global:
+    secure: jLAlSk1+owbNcTtPhfQYDIvfgBUT6zkKuudJAFJqk8uc8TFXJ0jnApwpVH3qQaXsIusf6oTAzrOU/bh/JKxtdn1jznlWz3z+sph44+breBzs53fEGLz+4m/LhJK3GJ5G6UGP+5ZsdytklBtPdBVd/kbXCIe2G/HmRVqVnO3BAYQ4tdtgw9TniOik/akgClvUy0IrGL20j7i4vQl3L+gzWuEj4akTXs+XI6ldZWDfh2RRF74a0Tdc+i/TGZdx2psS1bYObgia23qP96HQsHWDObZK8pH66Vs7f3ElG46lvENiG2a9l8uBO234tvWo/47vRDBQujPb4hofOAERdBd2E466pdE1lSh3YV22AtRjxhBH0P+qx56+c1BdmRvobrL8kbCeB2Ejctlsq9iF8EskArIaUhM2l0rrMCYfUnNqz3/5DVFTeLZ4o3SxHdhTxfLUVxsYcdEvsbUciH1N+sAwMqpSHcBjj4yeb33RzoMx8BNeC0BbrfgZ+E7hjJdOcCyweMKiKBkMNI1oCeygiJXoBDlRRxKCHgLlsrXrXuE9NNXehEsvCm7U2v2sYG04ZlPZmEipSM058xmnbP7faAprTpTMs+bsWiqvPx3ewlHJZr8qkyH6YB0uT1w4Um6djToY5oeFnOtDLSCeiucbmhVS9LJDciwQJr3k5BrwEkskXLw=
+before_script:
+- mix local.hex --force && mix deps.get
+script:
+- mix test
+- mix format --check-formatted
+- mix credo
+- mix dialyzer --halt-exit-status
+- mix coveralls.travis
+- mix compile --warnings-as-errors
+deploy:
+  provider: script
+  script:
+  - mix compile --warnings-as-errors
+  - mix test
+  - mix hex.publish
+  on:
+    tags: true

@@ -1,6 +1,11 @@
-![](https://github.com/brexhq/result/blob/master/Brex.Result.png)
-
 # Brex.Result
+
+![](https://raw.githubusercontent.com/brexhq/result/master/Brex.Result.png)
+
+[![Build Status](https://travis-ci.org/brexhq/result.svg?branch=master)](https://travis-ci.org/brexhq/result)
+[![hex.pm version](https://img.shields.io/hexpm/v/brex_result.svg)](https://hex.pm/packages/brex_result)
+[![Coverage Status](https://coveralls.io/repos/github/brexhq/result/badge.svg?branch=master)](https://coveralls.io/github/brexhq/result?branch=master)
+[![license](https://img.shields.io/github/license/brexhq/result.svg)](https://github.com/brexhq/result/blob/master/LICENSE)
 
 This library provides tools to handle three common return values in Elixir
 
@@ -276,5 +281,3 @@ def deps do
   ]
 end
 ```
-
-Docs can be found at [https://hexdocs.pm/brex_result](https://hexdocs.pm/brex_result).
