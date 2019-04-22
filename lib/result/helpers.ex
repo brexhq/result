@@ -8,10 +8,6 @@ defmodule Brex.Result.Helpers do
 
   require Logger
 
-  @typep a :: any()
-  @typep b :: any()
-  @typep c :: any()
-
   @type s(x) :: Base.s(x)
   @type t(x) :: Base.t(x)
 
@@ -69,10 +65,13 @@ defmodule Brex.Result.Helpers do
       ...> |> lift(&(&1 == "test"), fn x -> {:oops, x <> "ed"} end)
       {:error, {:oops, "tested"}}
 
+  ## Typespec:
+
+      lift(a | b, b | (a | b -> boolean), c | (a | b -> c)) :: s(a) when a: var, b: var, c: var
+
   """
   @doc updated: "0.2.0"
   @doc since: "0.1.0"
-  @spec lift(a | b, b | (a | b -> boolean), c | (a | b -> c)) :: s(a)
   defmacro lift(val, p, f) do
     quote do
       p = unquote(p)
@@ -104,7 +103,7 @@ defmodule Brex.Result.Helpers do
 
   """
   @doc since: "0.1.0"
-  @spec map_error(t(a), (any -> any)) :: t(a)
+  @spec map_error(t(a), (any -> any)) :: t(a) when a: var
   def map_error({:error, r}, f), do: error(f.(r))
   def map_error({:ok, _val} = ma, _), do: ma
   def map_error(:ok, _), do: :ok
@@ -121,10 +120,13 @@ defmodule Brex.Result.Helpers do
       ...> |> mask_error({:nonexistent_account, account_name})
       {:error, {:nonexistent_account, "test"}}
 
+  ## Typespec:
+
+      mask_error(t(a), any) :: t(a) when a: var
+
   """
   @doc updated: "0.2.0"
   @doc since: "0.1.0"
-  @spec mask_error(t(a), any) :: t(a)
   defmacro mask_error(ma, term) do
     quote do
       case unquote(ma) do
@@ -147,7 +149,7 @@ defmodule Brex.Result.Helpers do
   @doc updated: "0.2.0"
   @doc since: "0.1.0"
   # TODO: refine the type of second argument
-  @spec log_error(t(a), String.t() | (any -> any), Keyword.t()) :: t(a)
+  @spec log_error(t(a), String.t() | (any -> any), Keyword.t()) :: t(a) when a: var
   def log_error(ma, chardata_or_fun, opts \\ [])
 
   def log_error({:error, r} = ma, chardata_or_fun, opts) when is_binary(chardata_or_fun) do
@@ -188,7 +190,7 @@ defmodule Brex.Result.Helpers do
   """
   @doc updated: "0.2.0"
   @doc since: "0.1.0"
-  @spec convert_error(t(a), (any -> boolean) | any) :: t(a)
+  @spec convert_error(t(a), (any -> boolean) | any) :: t(a) when a: var
   def convert_error({:error, r} = ma, p) when is_function(p) do
     if p.(r), do: :ok, else: ma
   end
@@ -216,10 +218,13 @@ defmodule Brex.Result.Helpers do
       ...> |> convert_error(&(&1 == "test"), fn r -> {:ok, r <> "ed"} end)
       {:ok, "tested"}
 
+  ## Typespec:
+
+      convert_error(t(), (any -> boolean) | any, b | (any -> t(b))) :: t(b) when b: var
+
   """
   @doc updated: "0.2.0"
   @doc since: "0.1.0"
-  @spec convert_error(t(a), (any -> boolean) | any, b | (any -> t(b))) :: t(b)
   defmacro convert_error(ma, p, f) do
     quote do
       ma = unquote(ma)

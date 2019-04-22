@@ -2,6 +2,8 @@ defmodule HelpersTest do
   @moduledoc false
   use ExUnit.Case
 
+  import ExUnit.CaptureLog
+
   import Brex.Result.Helpers
 
   doctest Brex.Result.Helpers
@@ -62,32 +64,51 @@ defmodule HelpersTest do
     assert {:error, {:new_reason, "test"}} = mask_error({:error, 1}, {:new_reason, "test"})
   end
 
-  # TODO: capture logs and test other log levels.
   test "log_error error case" do
-    # logs generic error
-    assert {:error, 1} ==
-             log_error({:error, 1}, "")
+    log1 =
+      capture_log([level: :error, metadata: :all], fn ->
+        assert {:error, 1} == log_error({:error, 1}, "test1")
+      end)
 
-    # logs error with specific message and metadata
-    assert {:error, 1} ==
-             log_error({:error, 1}, "test", meta: "test meta")
+    assert log1 =~ "test1"
+    assert log1 =~ "reason=1"
 
-    # logs error with metadata and generic message
-    assert {:error, 1} ==
-             log_error({:error, 1}, "", meta: "test meta")
+    log2 =
+      capture_log([level: :error, metadata: :all], fn ->
+        assert {:error, 1} == log_error({:error, 1}, "test2", meta: "test meta")
+      end)
 
-    # logs error with specific message
-    assert {:error, 1} ==
-             log_error({:error, 1}, "test")
+    assert log2 =~ "test2"
+    assert log2 =~ "reason=1"
+    assert log2 =~ "meta=test meta"
+  end
+
+  test "log_error all levels" do
+    assert capture_log([level: :debug], fn ->
+             assert {:error, 1} == log_error({:error, 1}, "debug", level: :debug)
+           end) =~ "debug"
+
+    assert capture_log([level: :info], fn ->
+             assert {:error, 1} == log_error({:error, 1}, "info", level: :info)
+           end) =~ "info"
+
+    assert capture_log([level: :warn], fn ->
+             assert {:error, 1} == log_error({:error, 1}, "warn", level: :warn)
+           end) =~ "warn"
+
+    assert capture_log([level: :error], fn ->
+             assert {:error, 1} == log_error({:error, 1}, "error", level: :error)
+           end) =~ "error"
   end
 
   test "log_error success cases" do
-    # should not log.
-    assert {:ok, 1} ==
-             log_error({:ok, 1}, "test", meta: "test meta")
+    assert capture_log(fn ->
+             assert {:ok, 1} == log_error({:ok, 1}, "test", meta: "test meta")
+           end) =~ ""
 
-    assert :ok ==
-             log_error(:ok, "")
+    assert capture_log(fn ->
+             assert :ok == log_error(:ok, "")
+           end) =~ ""
   end
 
   test "convert_error" do
