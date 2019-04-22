@@ -3,9 +3,6 @@ defmodule Brex.Result.Base do
   Tools for doing basic result tuple manipulations.
   """
 
-  @typep a :: any()
-  @typep b :: any()
-
   @type s(x) :: {:ok, x} | {:error, any}
   @type t(x) :: :ok | s(x)
 
@@ -16,17 +13,25 @@ defmodule Brex.Result.Base do
   @doc """
   Wraps value in an `ok` tuple.
   Will be inlined at compile time.
+
+  ## Typespec:
+
+      ok(a) :: s(a) when a: var
+
   """
   @doc since: "0.1.0"
-  @spec ok(a) :: s(a)
   defmacro ok(val), do: {:ok, val}
 
   @doc """
   Wraps value in an `error` tuple
   Will be inlined at compile time.
+
+  ## Typespec:
+
+      error(any) :: t()
+
   """
   @doc since: "0.1.0"
-  @spec error(any) :: t(a)
   defmacro error(r), do: {:error, r}
 
   @doc """
@@ -47,7 +52,7 @@ defmodule Brex.Result.Base do
   """
   @doc updated: "0.3.0"
   @doc since: "0.1.0"
-  @spec bind(s(a), (a -> s(b))) :: s(b)
+  @spec bind(s(a), (a -> s(b))) :: s(b) when a: var, b: var
   def bind({:error, r}, _), do: {:error, r}
 
   def bind({:ok, v}, f) do
@@ -60,6 +65,7 @@ defmodule Brex.Result.Base do
   @doc """
   This is infix `bind/2`
   Has same syntax restrictions as pipe.
+  Defined as a macro for syntatic purposes.
 
   ## Examples:
 
@@ -89,10 +95,13 @@ defmodule Brex.Result.Base do
       ~> two_args(2)
       = {:ok, 1}
 
+  ## Typespec:
+
+      t(a) ~> (a -> t(b)) :: t(b) when a: var, b: var
+
   """
   @doc updated: "0.4.0"
   @doc since: "0.1.0"
-  @spec t(a) ~> (a -> t(b)) :: t(b)
   defmacro arg ~> fun do
     quote do
       unquote(__MODULE__).bind(unquote(arg), fn x ->
@@ -118,7 +127,7 @@ defmodule Brex.Result.Base do
 
   """
   @doc since: "0.1.0"
-  @spec fmap(s(a), (a -> b)) :: s(b)
+  @spec fmap(s(a), (a -> b)) :: s(b) when a: var, b: var
   def fmap(m, f), do: bind(m, &{:ok, f.(&1)})
 
   @doc """
@@ -140,7 +149,7 @@ defmodule Brex.Result.Base do
 
   """
   @doc since: "0.2.0"
-  @spec ignore(t(a)) :: p()
+  @spec ignore(t()) :: p()
   def ignore({:error, r}), do: {:error, r}
   def ignore({:ok, _val}), do: :ok
   def ignore(:ok), do: :ok
@@ -151,7 +160,7 @@ defmodule Brex.Result.Base do
   """
   @doc updated: "0.3.0"
   @doc since: "0.1.0"
-  @spec extract!(s(a)) :: a
+  @spec extract!(s(a)) :: a when a: var
   def extract!({:error, _} = ma) do
     raise ArgumentError, "`extract` expects an ok tuple, \"#{inspect(ma)}\" given."
   end

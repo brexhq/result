@@ -11,6 +11,7 @@ defmodule UpdateCustomer do
   """
   use Brex.Result
 
+  # Without Brex.Result
   def update_customerX(customer_id, params) do
     User
     |> Repo.get(customer_id)
@@ -34,6 +35,7 @@ defmodule UpdateCustomer do
     end
   end
 
+  # With Brex.Result
   def update_customer(customer_id, params) do
     User
     # customer | nil

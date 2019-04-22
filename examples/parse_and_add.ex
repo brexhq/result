@@ -18,6 +18,7 @@ defmodule ParseAndAdd do
     end
   end
 
+  # Without Brex.Result
   def parseX(file) do
     # {:ok, file} | {:error, :enoent}
     with {:ok, contents} <- File.read(file) do
@@ -43,6 +44,7 @@ defmodule ParseAndAdd do
     end
   end
 
+  # With Brex.Result
   def parse(file) do
     file
     |> File.read()

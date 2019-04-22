@@ -80,10 +80,10 @@ Convenience types
 Write specs and callbacks usings these shorthands.
 
 ```elixir
+# Original
 @spec my_fun({:ok, String.t} | {:error, any}, Integer) :: :ok | {:error, any}
-```
 
-```elixir
+# With shorthands
 @spec my_fun(Brex.Result.s(String.t), Integer) :: Brex.Result.p()
 ```
 
@@ -107,7 +107,7 @@ iex> :not_found
 
 #### Style Recommendation
 
-Only use `ok/1` and `error/1` at the end of pipe chains. While they can be used directly or in case patterns, the tuple syntax is more explicit and no more cumbersome in those events.
+_Don't_ use `ok/1` and `error/1` when tuple syntax is more explicit:
 
 ```elixir
 # No
@@ -115,7 +115,11 @@ ok(2)
 
 # Yes
 {:ok, 2}
+```
 
+_Do_ use `ok/1` and `error/1` at the end of a chain of pipes:
+
+```elixir
 # No
 val =
   arg
@@ -259,7 +263,6 @@ iex> :ok
 
 ## Known Problems
 
-- Incorrect specs on macros according to dialyzer, but they are very useful in documentation.
 - Credo complains pipe chain is not started with raw value when preceeded by `~>`.
 
 ## Installation

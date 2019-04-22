@@ -5,15 +5,18 @@ defmodule Brex.Result.Mappers do
   import Brex.Result.Base
   alias Brex.Result.Base
 
-  @typep a :: any()
-  @typep b :: any()
-
   @type s(x) :: Base.s(x)
   @type t(x) :: Base.t(x)
 
   @type p() :: Base.p()
   @type s() :: Base.s()
   @type t() :: Base.t()
+
+  @typedoc """
+  The type `t:Enum.t/0` does not accept any arguments. This is a workaround to express the type of
+  an enumerable with elements restricted to a particular type.
+  """
+  @type enumerable(x) :: [x] | Enum.t()
 
   @doc """
   Binds the function to each tuple in the enum.
@@ -26,7 +29,7 @@ defmodule Brex.Result.Mappers do
 
   """
   @doc since: "0.1.0"
-  @spec map_with_bind(Enum.t(s(a)), (a -> s(b))) :: Enum.t(s(b))
+  @spec map_with_bind(enumerable(s(a)), (a -> s(b))) :: enumerable(s(b)) when a: var, b: var
   def map_with_bind(l, f), do: Enum.map(l, &bind(&1, f))
 
   @doc """
@@ -45,7 +48,7 @@ defmodule Brex.Result.Mappers do
 
   """
   @doc since: "0.1.0"
-  @spec map_while_success(Enum.t(a), (a -> t(b))) :: s(Enum.t(b))
+  @spec map_while_success(enumerable(a), (a -> t(b))) :: s(enumerable(b)) when a: var, b: var
   def map_while_success(l, f) do
     l
     |> Enum.reduce_while({:ok, []}, fn x, acc ->
@@ -79,7 +82,7 @@ defmodule Brex.Result.Mappers do
 
   """
   @doc since: "0.3.0"
-  @spec reduce_while_success(Enum.t(a), b, (a, b -> t(b))) :: t(b)
+  @spec reduce_while_success(enumerable(a), b, (a, b -> t(b))) :: t(b) when a: var, b: var
   def reduce_while_success(ms, b, f) do
     Enum.reduce_while(ms, {:ok, b}, fn a, acc ->
       case bind(acc, &f.(a, &1)) do
@@ -106,7 +109,7 @@ defmodule Brex.Result.Mappers do
 
   """
   @doc since: "0.2.0"
-  @spec each_while_success(Enum.t(a), (a -> p())) :: p()
+  @spec each_while_success(enumerable(a), (a -> p())) :: p() when a: var
   def each_while_success(ms, f) do
     Enum.reduce_while(ms, :ok, fn x, _acc ->
       case f.(x) do
