@@ -5,6 +5,11 @@ elixir:
 otp_release:
 - 20.0
 - 21.0
+cache:
+  directories:
+    - $HOME/.mix
+    - _build
+    - deps
 env:
   matrix:
   - MIX_ENV=test
