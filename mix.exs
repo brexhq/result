@@ -39,7 +39,7 @@ defmodule Brex.Result.MixProject do
 
   defp description do
     """
-    Tools to handle three common return values in Elixir: `:ok | {:ok, value} | {:error, reason}`
+    Tools to handle three common return values in Elixir: :ok | {:ok, value} | {:error, reason}
     """
   end
 
