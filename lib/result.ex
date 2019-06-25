@@ -9,7 +9,7 @@ defmodule Brex.Result do
   - `Brex.Result.Base` - Base provides tools for creating and passing around `ok`/`error` tuples.
     The tools follow the property: if there’s a success continue the computation, if there’s an error propagate it.
   - `Brex.Result.Helpers` - Helpers includes tools for modifying the reason in `error` tuples.
-    The functions in this module always propogate the success value.
+    The functions in this module always propagate the success value.
   - `Brex.Result.Mappers` - Mappers includes tools for applying functions that return
     `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
 
