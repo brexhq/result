@@ -17,7 +17,7 @@ This library provides tools to handle three common return values in Elixir
 
 - [Overview](#overview)
 - [Usage](#usage)
-- [Differences rom Similar Libraries](#differences-from-similar-libraries)
+- [Differences from Similar Libraries](#differences-from-similar-libraries)
 - [Definitions](#definitions)
 - [Types](#types)
 - [Base](#base)
