@@ -31,7 +31,7 @@ This library provides tools to handle three common return values in Elixir
 `Brex.Result` is split into three main components:
 
 - `Brex.Result.Base` - Base provides tools for creating and passing around `ok`/`error` tuples. The tools follow the property: if there’s a success continue the computation, if there’s an error propagate it.
-- `Brex.Result.Helpers` - Helpers includes tools for modifying the reason in `error` tuples. The functions in this module always propogate the success value.
+- `Brex.Result.Helpers` - Helpers includes tools for modifying the reason in `error` tuples. The functions in this module always propagate the success value.
 - `Brex.Result.Mappers` - Mappers includes tools for applying functions that return `:ok | {:ok, val} | {:error, reason}` over `Enumerables`.
 
 ## Usage
@@ -140,7 +140,7 @@ arg
 |> ok
 ```
 
-Use `Brex.Result.Base.fmap/2` to transform the value within a success tuple. It propogates the error value.
+Use `Brex.Result.Base.fmap/2` to transform the value within a success tuple. It propagates the error value.
 
 ```elixir
 iex> {:ok, 2}
