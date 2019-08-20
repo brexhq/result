@@ -85,11 +85,11 @@ defmodule HelpersTest do
 
   test "log_error all levels" do
     assert capture_log([level: :debug], fn ->
-             assert {:error, 1} == log_error({:error, 1}, "debug", level: :debug)
+             assert {:error, :one} == log_error({:error, :one}, "debug", level: :debug)
            end) =~ "debug"
 
     assert capture_log([level: :info], fn ->
-             assert {:error, 1} == log_error({:error, 1}, "info", level: :info)
+             assert {:error, "one"} == log_error({:error, "one"}, "info", level: :info)
            end) =~ "info"
 
     assert capture_log([level: :warn], fn ->

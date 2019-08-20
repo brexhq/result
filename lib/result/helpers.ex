@@ -137,6 +137,11 @@ defmodule Brex.Result.Helpers do
     end
   end
 
+  @spec reason_to_string(any) :: String.t()
+  defp reason_to_string(value) when is_atom(value), do: Atom.to_string(value)
+  defp reason_to_string(value) when is_binary(value), do: value
+  defp reason_to_string(value), do: inspect(value)
+
   @doc """
   Logs on `error`, does nothing on success.
 
@@ -146,7 +151,7 @@ defmodule Brex.Result.Helpers do
       |> log_error("There was an error", level: :info, metadata: "some meta")
 
   """
-  @doc updated: "0.2.0"
+  @doc updated: "0.4.1"
   @doc since: "0.1.0"
   # TODO: refine the type of second argument
   @spec log_error(t(a), String.t() | (any -> any), Keyword.t()) :: t(a) when a: var
@@ -164,7 +169,7 @@ defmodule Brex.Result.Helpers do
         :error -> &Logger.error/2
       end
 
-    log_fn.(chardata_or_fun, [reason: "#{r}"] ++ metadata)
+    log_fn.(chardata_or_fun, [reason: reason_to_string(r)] ++ metadata)
 
     ma
   end
